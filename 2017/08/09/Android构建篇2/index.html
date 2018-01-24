@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文以 Android 工程为例讲述 Gradle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 构建篇(2)：以 Android 工程为例讲述 Gradle">
+<meta property="og:url" content="http://yoursite.com/2017/08/09/Android构建篇2/index.html">
+<meta property="og:site_name" content="Lyt">
+<meta property="og:description" content="本文以 Android 工程为例讲述 Gradle">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://raw.githubusercontent.com/yuting-lin/hexo.github.io/master/source/_posts/Android%E6%9E%84%E5%BB%BA%E7%AF%87/Android%20Project.png">
+<meta property="og:image" content="https://developer.android.com/images/tools/studio/build-process_2x.png">
+<meta property="og:updated_time" content="2018-01-24T04:09:35.249Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 构建篇(2)：以 Android 工程为例讲述 Gradle">
+<meta name="twitter:description" content="本文以 Android 工程为例讲述 Gradle">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/yuting-lin/hexo.github.io/master/source/_posts/Android%E6%9E%84%E5%BB%BA%E7%AF%87/Android%20Project.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/09/Android构建篇2/"/>
+
+
+
+
+
+  <title>Android 构建篇(2)：以 Android 工程为例讲述 Gradle | Lyt</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lyt</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/09/Android构建篇2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lyt">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lyt">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android 构建篇(2)：以 Android 工程为例讲述 Gradle</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-09T00:00:00+08:00">
+                2017-08-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文以 Android 工程为例讲述 Gradle<br><img src="https://raw.githubusercontent.com/yuting-lin/hexo.github.io/master/source/_posts/Android%E6%9E%84%E5%BB%BA%E7%AF%87/Android%20Project.png" alt="Android Project"></p>
+<a id="more"></a>
+<h2 id="一、以-Android-工程为例"><a href="#一、以-Android-工程为例" class="headerlink" title="一、以 Android 工程为例"></a>一、以 Android 工程为例</h2><h3 id="1-gradle-wrapper-properties-of-project"><a href="#1-gradle-wrapper-properties-of-project" class="headerlink" title="1. gradle-wrapper.properties of project"></a>1. gradle-wrapper.properties of project</h3><p>$rootProject.projectDir/gradle-wrapper.properties<br>上文提过，此文件用于配置构建该 project 的 Gradle 版本等<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">distributionBase=GRADLE_USER_HOME</span><br><span class="line">distributionPath=wrapper/dists</span><br><span class="line">zipStoreBase=GRADLE_USER_HOME</span><br><span class="line">zipStorePath=wrapper/dists</span><br><span class="line">distributionUrl=https\://services.gradle.org/distributions/gradle-2.14.1-all.zip</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-gradle-properties-of-project"><a href="#2-gradle-properties-of-project" class="headerlink" title="2. gradle.properties of project"></a>2. gradle.properties of project</h3><p>$rootProject.projectDir/gradle.properties<br>此文件用于配置全局构建环境等<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># Project-wide Gradle settings.</span><br><span class="line"></span><br><span class="line"># IDE (e.g. Android Studio) users:</span><br><span class="line"># Gradle settings configured through the IDE *will override*</span><br><span class="line"># any settings specified in this file.</span><br><span class="line"></span><br><span class="line"># For more details on how to configure your build environment visit</span><br><span class="line"># http://www.gradle.org/docs/current/userguide/build_environment.html</span><br><span class="line"></span><br><span class="line"># Specifies the JVM arguments used for the daemon process.</span><br><span class="line"># The setting is particularly useful for tweaking memory settings.</span><br><span class="line">org.gradle.jvmargs=-Xmx1536m</span><br><span class="line"></span><br><span class="line"># When configured, Gradle will run in incubating parallel mode.</span><br><span class="line"># This option should only be used with decoupled projects. More details, visit</span><br><span class="line"># http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects</span><br><span class="line"># org.gradle.parallel=true</span><br></pre></td></tr></table></figure></p>
+<p>以下设置条件允许可提高构建速度<br>(1) org.gradle.jvmargs=-Xmx1536m<br>JVM 最大允许分配的堆内存，条件允许的话，值越大，构建速度越快<br>(2) org.gradle.parallel=true<br>并行构建，条件允许可提高构建速度<br>(3) org.gradle.daemon=true<br>使用守护进程，条件允许可提高构建速度<br>Gradle 守护进程是一个后台进程, 运行着繁重的构建, 并在等待下一次构建的时保持自身存在，准备好下一次构建的数据和代码，存入内存中，提高后续构建的性能<br>注：开发机器上建议开启 Gradle 守护进程，但在持续继承环境下不推荐，参考 <a href="https://docs.gradle.org/current/userguide/gradle_daemon.html#when_should_i_not_use_the_gradle_daemon" target="_blank" rel="noopener">When should I not use the Gradle Daemon?</a>)</p>
+<h3 id="3-local-properties-of-project"><a href="#3-local-properties-of-project" class="headerlink" title="3. local.properties of project"></a>3. local.properties of project</h3><p>$rootProject.projectDir/local.properties<br>配置 Android SDK、NDK 路径<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sdk.dir=/Users/yutinglin/Documents/sdk/android</span><br></pre></td></tr></table></figure></p>
+<h3 id="4-settings-gradle-of-project"><a href="#4-settings-gradle-of-project" class="headerlink" title="4. settings.gradle of project"></a>4. settings.gradle of project</h3><p>$rootProject.projectDir/settings.gradle<br>对应一个 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.initialization.Settings.html" target="_blank" rel="noopener">Settings</a> 对象，包括 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]" target="_blank" rel="noopener">void include(String[] projectPaths)</a>) 方法<br>用于指定哪些 module 参与构建<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include &apos;:app&apos;</span><br></pre></td></tr></table></figure></p>
+<h3 id="5-build-gradle-of-project"><a href="#5-build-gradle-of-project" class="headerlink" title="5. build.gradle of project"></a>5. build.gradle of project</h3><p>$rootProject.projectDir/build.gradle<br>对应一个<a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a>对象</p>
+<h4 id="5-1-Project-具备-buildscript-属性"><a href="#5-1-Project-具备-buildscript-属性" class="headerlink" title="5.1 Project 具备 buildscript 属性"></a>5.1 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 具备 <a href="https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:buildscript" target="_blank" rel="noopener">buildscript</a> 属性</h4><p>包括自身及 <a href="https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:subprojects" target="_blank" rel="noopener">subprojects</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 配置 Android Gradle Plugin</span><br><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line">        # 指定 Android Gradle Plugin 版本号</span><br><span class="line">        classpath &apos;com.android.tools.build:gradle:2.2.2&apos;</span><br><span class="line"></span><br><span class="line">        // NOTE: Do not place your application config here; they belong</span><br><span class="line">        // in the individual module build.gradle files</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="5-2-Project-具备-allprojects-属性"><a href="#5-2-Project-具备-allprojects-属性" class="headerlink" title="5.2 Project 具备 allprojects 属性"></a>5.2 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 具备 <a href="https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:allprojects" target="_blank" rel="noopener">allprojects</a> 属性</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 配置 top-level project 及 modules</span><br><span class="line">allprojects &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="5-3-Project-具备-task-name-方法"><a href="#5-3-Project-具备-task-name-方法" class="headerlink" title="5.3 Project 具备 task(name)) 方法"></a>5.3 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 具备 <a href="https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String" target="_blank" rel="noopener">task(name)</a>) 方法</h4><p>用于创建一个 <a href="https://docs.gradle.org/current/dsl/org.gradle.api.Task.html" target="_blank" rel="noopener">Task</a> 并添加到该 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 对象<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">task clean(type: Delete) &#123;</span><br><span class="line">    delete rootProject.buildDir</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="6-build-gradle-of-module"><a href="#6-build-gradle-of-module" class="headerlink" title="6. build.gradle of module"></a>6. build.gradle of module</h3><p>$projectDir/build.gradle 对应一个 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 对象</p>
+<h4 id="6-1-Project-具备-void-apply-Map-options-方法"><a href="#6-1-Project-具备-void-apply-Map-options-方法" class="headerlink" title="6.1 Project 具备 void apply(Map options)) 方法"></a>6.1 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 具备 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.plugins.PluginAware.html#org.gradle.api.plugins.PluginAware:apply(java.util.Map" target="_blank" rel="noopener">void apply(Map<string, ?=""> options)</string,></a>) 方法</h4><p>引用 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.plugins.PluginAware.html#org.gradle.api.plugins.PluginAware:apply(java.util.Map" target="_blank" rel="noopener">void apply(Map<string, ?=""> options)</string,></a>)</p>
+<blockquote>
+<p>The following options are available:<br>from: A script to apply.<br>plugin: The id or implementation class of the plugin to apply.<br>to: The target delegate object or objects. The default is this plugin aware object. Use this to configure objects other than this object.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: &apos;com.android.application&apos;</span><br></pre></td></tr></table></figure>
+<p>引用 <a href="https://guides.gradle.org/building-android-apps/" target="_blank" rel="noopener">Gradle Guides - Building Android apps</a></p>
+<blockquote>
+<p>applying the Android plugin adds a wide variety of tasks, which are configured by the android block shown next.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    # Android SDK API Level</span><br><span class="line">    compileSdkVersion 25</span><br><span class="line">    # Android SDK Build-tools</span><br><span class="line">    buildToolsVersion &quot;25.0.2&quot;</span><br><span class="line">    # 所有 Build Variants 共享的配置</span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        # package name</span><br><span class="line">        applicationId &quot;org.gradle.helloworldgradle&quot;</span><br><span class="line">        minSdkVersion 15</span><br><span class="line">        targetSdkVersion 25</span><br><span class="line">        versionCode 1</span><br><span class="line">        versionName &quot;1.0&quot;</span><br><span class="line">        testInstrumentationRunner</span><br><span class="line">            &quot;android.support.test.runner.AndroidJUnitRunner&quot;</span><br><span class="line">    &#125;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        release &#123;</span><br><span class="line">            # 混淆</span><br><span class="line">            minifyEnabled false</span><br><span class="line">            proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;),</span><br><span class="line">                &apos;proguard-rules.pro&apos;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="6-2-Project-具备-dependencies-属性"><a href="#6-2-Project-具备-dependencies-属性" class="headerlink" title="6.2 Project 具备 dependencies 属性"></a>6.2 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html" target="_blank" rel="noopener">Project</a> 具备 <a href="https://docs.gradle.org/4.0/dsl/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure" target="_blank" rel="noopener">dependencies</a> 属性</h4><p>配置依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    # 依赖 $projectDir/libs/*.jar</span><br><span class="line">    compile fileTree(dir: &apos;libs&apos;, include: [&apos;*.jar&apos;])</span><br><span class="line">    androidTestCompile(&apos;com.android.support.test.espresso:espresso-core:2.2.2&apos;, &#123;</span><br><span class="line">        exclude group: &apos;com.android.support&apos;, module: &apos;support-annotations&apos;</span><br><span class="line">    &#125;)</span><br><span class="line">    compile &apos;com.android.support:appcompat-v7:25.1.1&apos;</span><br><span class="line">    testCompile &apos;junit:junit:4.12&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="二、Android-构建流程"><a href="#二、Android-构建流程" class="headerlink" title="二、Android 构建流程"></a>二、Android 构建流程</h2><p>引用 <a href="https://developer.android.com/studio/build/index.html?hl=zh-cn#build-process" target="_blank" rel="noopener">构建流程</a><br><img src="https://developer.android.com/images/tools/studio/build-process_2x.png" alt="Android 构建流程"></p>
+<h2 id="三、参考"><a href="#三、参考" class="headerlink" title="三、参考"></a>三、参考</h2><p><a href="https://guides.gradle.org/building-android-apps/" target="_blank" rel="noopener">Gradle Guides - Building Android apps</a><br><a href="https://docs.gradle.org/current/userguide/gradle_daemon.html#when_should_i_not_use_the_gradle_daemon" target="_blank" rel="noopener">When should I not use the Gradle Daemon?</a><br><a href="https://developer.android.com/studio/build/index.html?hl=zh-cn#build-process" target="_blank" rel="noopener">构建流程</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/02/Android构建篇1/" rel="next" title="Android 构建篇(1)：Gradle 基础知识">
+                <i class="fa fa-chevron-left"></i> Android 构建篇(1)：Gradle 基础知识
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/16/Android构建篇3/" rel="prev" title="Android 构建篇(3)：Gradle 依赖管理">
+                Android 构建篇(3)：Gradle 依赖管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Lyt</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、以-Android-工程为例"><span class="nav-text">一、以 Android 工程为例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-gradle-wrapper-properties-of-project"><span class="nav-text">1. gradle-wrapper.properties of project</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-gradle-properties-of-project"><span class="nav-text">2. gradle.properties of project</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-local-properties-of-project"><span class="nav-text">3. local.properties of project</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-settings-gradle-of-project"><span class="nav-text">4. settings.gradle of project</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-build-gradle-of-project"><span class="nav-text">5. build.gradle of project</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-Project-具备-buildscript-属性"><span class="nav-text">5.1 Project 具备 buildscript 属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-Project-具备-allprojects-属性"><span class="nav-text">5.2 Project 具备 allprojects 属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-Project-具备-task-name-方法"><span class="nav-text">5.3 Project 具备 task(name)) 方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-build-gradle-of-module"><span class="nav-text">6. build.gradle of module</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-1-Project-具备-void-apply-Map-options-方法"><span class="nav-text">6.1 Project 具备 void apply(Map options)) 方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-Project-具备-dependencies-属性"><span class="nav-text">6.2 Project 具备 dependencies 属性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、Android-构建流程"><span class="nav-text">二、Android 构建流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、参考"><span class="nav-text">三、参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lyt</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

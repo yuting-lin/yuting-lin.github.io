@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文阐述合并多个 aar/jar 文件的背景、方案和原理  使用 jar 命令 android-fat-aar android-fat-aar 实现原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 构建篇(4)：合并多个 aar&#x2F;jar 文件">
+<meta property="og:url" content="http://yoursite.com/2017/08/23/Android构建篇4/index.html">
+<meta property="og:site_name" content="Lyt">
+<meta property="og:description" content="本文阐述合并多个 aar/jar 文件的背景、方案和原理  使用 jar 命令 android-fat-aar android-fat-aar 实现原理">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://raw.githubusercontent.com/yuting-lin/hexo.github.io/master/source/_posts/Android%E6%9E%84%E5%BB%BA%E7%AF%87/android-fat-aar.png">
+<meta property="og:updated_time" content="2018-01-24T07:11:17.665Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 构建篇(4)：合并多个 aar&#x2F;jar 文件">
+<meta name="twitter:description" content="本文阐述合并多个 aar/jar 文件的背景、方案和原理  使用 jar 命令 android-fat-aar android-fat-aar 实现原理">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/yuting-lin/hexo.github.io/master/source/_posts/Android%E6%9E%84%E5%BB%BA%E7%AF%87/android-fat-aar.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/23/Android构建篇4/"/>
+
+
+
+
+
+  <title>Android 构建篇(4)：合并多个 aar/jar 文件 | Lyt</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lyt</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/23/Android构建篇4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lyt">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lyt">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android 构建篇(4)：合并多个 aar/jar 文件</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-23T00:00:00+08:00">
+                2017-08-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文阐述合并多个 aar/jar 文件的背景、方案和原理</p>
+<ul>
+<li>使用 jar 命令</li>
+<li>android-fat-aar</li>
+<li>android-fat-aar 实现原理</li>
+</ul>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>为了让代码解耦，提高复用性，我们将 SDK Project 拆解成几个 module，业务 module 依赖基础 module<br>但是每个 module 都会单独输出 aar/jar 文件，并不会把依赖的 module 代码打包进去，然而，最后发布时我们却只能提供一个单独的 aar/jar 文件<br>于是，我们需要合并多个 aar/jar 文件至同一个文件</p>
+<h2 id="解决方案-一-使用-jar-命令"><a href="#解决方案-一-使用-jar-命令" class="headerlink" title="解决方案(一): 使用 jar 命令"></a>解决方案(一): 使用 jar 命令</h2><p>如果只有代码，没有资源文件，那么可以使用 jar 命令 完成合并 aar/jar 文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ jar</span><br><span class="line">用法: jar &#123;ctxui&#125;[vfmn0PMe] [jar-file] [manifest-file] [entry-point] [-C dir] files ...</span><br><span class="line">选项:</span><br><span class="line">    -c  创建新档案</span><br><span class="line">    -t  列出档案目录</span><br><span class="line">    -x  从档案中提取指定的 (或所有) 文件</span><br><span class="line">    -u  更新现有档案</span><br><span class="line">    -v  在标准输出中生成详细输出</span><br><span class="line">    -f  指定档案文件名</span><br><span class="line">    -m  包含指定清单文件中的清单信息</span><br><span class="line">    -n  创建新档案后执行 Pack200 规范化</span><br><span class="line">    -e  为捆绑到可执行 jar 文件的独立应用程序</span><br><span class="line">        指定应用程序入口点</span><br><span class="line">    -0  仅存储; 不使用任何 ZIP 压缩</span><br><span class="line">    -P  保留文件名中的前导 &apos;/&apos; (绝对路径) 和 &quot;..&quot; (父目录) 组件</span><br><span class="line">    -M  不创建条目的清单文件</span><br><span class="line">    -i  为指定的 jar 文件生成索引信息</span><br><span class="line">    -C  更改为指定的目录并包含以下文件</span><br><span class="line">如果任何文件为目录, 则对其进行递归处理。</span><br><span class="line">清单文件名, 档案文件名和入口点名称的指定顺序</span><br><span class="line">与 &apos;m&apos;, &apos;f&apos; 和 &apos;e&apos; 标记的指定顺序相同。</span><br><span class="line"></span><br><span class="line">示例 1: 将两个类文件归档到一个名为 classes.jar 的档案中:</span><br><span class="line">       jar cvf classes.jar Foo.class Bar.class</span><br><span class="line">示例 2: 使用现有的清单文件 &apos;mymanifest&apos; 并</span><br><span class="line">           将 foo/ 目录中的所有文件归档到 &apos;classes.jar&apos; 中:</span><br><span class="line">       jar cvfm classes.jar mymanifest -C foo/ .</span><br></pre></td></tr></table></figure></p>
+<p>(1) 将所有 jar 包的 classes.jar 解压到某个目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jar -xvf XXX/classes.jar</span><br></pre></td></tr></table></figure></p>
+<p>(2) 将解压后的所有 class 文件重新压缩为一个单独的 classes.jar<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jar -cvfM YYY.jar</span><br></pre></td></tr></table></figure></p>
+<h2 id="解决方案-二-android-fat-aar"><a href="#解决方案-二-android-fat-aar" class="headerlink" title="解决方案(二): android-fat-aar"></a>解决方案(二): android-fat-aar</h2><p><a href="https://github.com/adwiv/android-fat-aar" target="_blank" rel="noopener">android-fat-aar</a></p>
+<h3 id="1-配置"><a href="#1-配置" class="headerlink" title="1. 配置"></a>1. 配置</h3><p>(1) apply gradle 文件<br>$projectDir/build.gradle<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply from : &apos;https://raw.githubusercontent.com/adwiv/android-fat-aar/master/fat-aar.gradle&apos;</span><br></pre></td></tr></table></figure></p>
+<p>(2) 指定要潜入 aar/jar 的文件<br>使用 embedded 替换 compile<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    ...</span><br><span class="line">    embedded project(&apos;:tangram&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-android-fat-aar-不支持的部分"><a href="#2-android-fat-aar-不支持的部分" class="headerlink" title="2. android-fat-aar 不支持的部分"></a>2. android-fat-aar 不支持的部分</h3><p>(1) Manifest placeholders<br>(2) AIDL 文件<br>(3) 多个 build types</p>
+<h2 id="android-fat-aar-实现原理"><a href="#android-fat-aar-实现原理" class="headerlink" title="android-fat-aar 实现原理"></a>android-fat-aar 实现原理</h2><h3 id="1-aar-文件是什么-需要合并哪些内容？"><a href="#1-aar-文件是什么-需要合并哪些内容？" class="headerlink" title="1. aar 文件是什么? 需要合并哪些内容？"></a>1. aar 文件是什么? 需要合并哪些内容？</h3><p>引用 <a href="https://developer.android.com/studio/projects/android-library.html#aar-contents" target="_blank" rel="noopener">AAR 文件详解</a></p>
+<blockquote>
+<p>AAR 文件的文件扩展名为 .aar，Maven 工件类型也应当是 aar。文件本身是一个包含以下强制性条目的 zip 文件：<br> /AndroidManifest.xml<br> /classes.jar<br> /res/<br> /R.txt<br> 此外，AAR 文件可能包含以下可选条目中的一个或多个：<br> /assets/<br> /libs/名称.jar<br> /jni/abi 名称/名称.so（其中 abi 名称 是 Android 支持的 ABI 之一）<br> /proguard.txt<br> /lint.jar</p>
+</blockquote>
+<h3 id="2-原理"><a href="#2-原理" class="headerlink" title="2. 原理"></a>2. 原理</h3><p>本质上是将多个内容文件拷贝到一起，再合并相同名称的文件</p>
+<h4 id="2-1-如何确认需要合并的-module"><a href="#2-1-如何确认需要合并的-module" class="headerlink" title="2.1 如何确认需要合并的 module?"></a>2.1 如何确认需要合并的 module?</h4><p>通过在 dependencies 中使用 embedded 替换 compile，将多个 module 关联起来<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    ...</span><br><span class="line">    embedded project(&apos;:tangram&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-2-如何找到需要合并的-module-的内容文件路径"><a href="#2-2-如何找到需要合并的-module-的内容文件路径" class="headerlink" title="2.2 如何找到需要合并的 module 的内容文件路径"></a>2.2 如何找到需要合并的 module 的内容文件路径</h4><p>每个 module 在编译时，都会生成 build 文件夹，里面存放 aar 所需的多个内容文件<br>将需合并的内容文件存放至 exploded-aar 文件夹<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ext.build_dir = buildDir.path.replace(File.separator, &apos;/&apos;);</span><br><span class="line"></span><br><span class="line">ext.exploded_aar_dir = &quot;$build_dir/intermediates/exploded-aar&quot;;</span><br><span class="line">ext.classs_release_dir = &quot;$build_dir/intermediates/classes/release&quot;;</span><br><span class="line">ext.bundle_release_dir = &quot;$build_dir/intermediates/bundles/release&quot;;</span><br><span class="line">ext.manifest_aaapt_dir = &quot;$build_dir/intermediates/manifests/aapt/release&quot;;</span><br><span class="line">ext.generated_rsrc_dir = &quot;$build_dir/generated/source/r/release&quot;;</span><br><span class="line"></span><br><span class="line">ext.base_r2x_dir = &quot;$build_dir/fat-aar/release/&quot;;</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-3-什么时候执行合并？"><a href="#2-3-什么时候执行合并？" class="headerlink" title="2.3 什么时候执行合并？"></a>2.3 什么时候执行合并？</h4><p>示例：app module embedded base module<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br></pre></td><td class="code"><pre><span class="line">$ ./gradlew assembleRelease</span><br><span class="line">To honour the JVM settings for this build a new JVM will be forked. Please consider using the daemon: https://docs.gradle.org/2.14.1/userguide/gradle_daemon.html.</span><br><span class="line">Incremental java compilation is an incubating feature.</span><br><span class="line">:app:preBuild UP-TO-DATE</span><br><span class="line">:app:preReleaseBuild UP-TO-DATE</span><br><span class="line">:app:checkReleaseManifest</span><br><span class="line">:app:preDebugAndroidTestBuild UP-TO-DATE</span><br><span class="line">:app:preDebugBuild UP-TO-DATE</span><br><span class="line">:app:preDebugUnitTestBuild UP-TO-DATE</span><br><span class="line">:app:preReleaseUnitTestBuild UP-TO-DATE</span><br><span class="line">:base:preBuild UP-TO-DATE</span><br><span class="line">:base:preReleaseBuild UP-TO-DATE</span><br><span class="line">:base:checkReleaseManifest</span><br><span class="line">:base:preDebugAndroidTestBuild UP-TO-DATE</span><br><span class="line">:base:preDebugBuild UP-TO-DATE</span><br><span class="line">:base:preDebugUnitTestBuild UP-TO-DATE</span><br><span class="line">:base:preReleaseUnitTestBuild UP-TO-DATE</span><br><span class="line">:base:prepareComAndroidSupportAnimatedVectorDrawable2511Library</span><br><span class="line">:base:prepareComAndroidSupportAppcompatV72511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportCompat2511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportCoreUi2511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportCoreUtils2511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportFragment2511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportMediaCompat2511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportV42511Library</span><br><span class="line">:base:prepareComAndroidSupportSupportVectorDrawable2511Library</span><br><span class="line">:base:prepareReleaseDependencies</span><br><span class="line">:base:compileReleaseAidl</span><br><span class="line">:base:compileReleaseNdk UP-TO-DATE</span><br><span class="line">:base:compileLint</span><br><span class="line">:base:copyReleaseLint UP-TO-DATE</span><br><span class="line">:base:compileReleaseRenderscript</span><br><span class="line">:base:generateReleaseBuildConfig</span><br><span class="line">:base:generateReleaseResValues</span><br><span class="line">:base:generateReleaseResources</span><br><span class="line">:base:mergeReleaseResources</span><br><span class="line">:base:processReleaseManifest</span><br><span class="line">:base:processReleaseResources</span><br><span class="line">:base:generateReleaseSources</span><br><span class="line">:base:incrementalReleaseJavaCompilationSafeguard</span><br><span class="line">:base:compileReleaseJavaWithJavac</span><br><span class="line">:base:compileReleaseJavaWithJavac - is not incremental (e.g. outputs have changed, no previous execution, etc.).</span><br><span class="line">:base:extractReleaseAnnotations</span><br><span class="line">:base:mergeReleaseShaders</span><br><span class="line">:base:compileReleaseShaders</span><br><span class="line">:base:generateReleaseAssets</span><br><span class="line">:base:mergeReleaseAssets</span><br><span class="line">:base:mergeReleaseProguardFiles UP-TO-DATE</span><br><span class="line">:base:packageReleaseRenderscript UP-TO-DATE</span><br><span class="line">:base:packageReleaseResources</span><br><span class="line">:base:processReleaseJavaRes UP-TO-DATE</span><br><span class="line">:base:transformResourcesWithMergeJavaResForRelease</span><br><span class="line">:base:transformClassesAndResourcesWithSyncLibJarsForRelease</span><br><span class="line">:base:mergeReleaseJniLibFolders</span><br><span class="line">:base:transformNative_libsWithMergeJniLibsForRelease</span><br><span class="line">:base:transformNative_libsWithSyncJniLibsForRelease</span><br><span class="line">:base:bundleRelease</span><br><span class="line">:app:prepareComAndroidSupportAnimatedVectorDrawable2511Library</span><br><span class="line">:app:prepareComAndroidSupportAppcompatV72511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportCompat2511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportCoreUi2511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportCoreUtils2511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportFragment2511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportMediaCompat2511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportV42511Library</span><br><span class="line">:app:prepareComAndroidSupportSupportVectorDrawable2511Library</span><br><span class="line">:app:prepareDemoBaseUnspecifiedLibrary</span><br><span class="line">:app:prepareReleaseDependencies</span><br><span class="line">:app:compileReleaseAidl</span><br><span class="line">:app:compileReleaseNdk UP-TO-DATE</span><br><span class="line">:app:compileLint</span><br><span class="line">:app:copyReleaseLint UP-TO-DATE</span><br><span class="line">:app:compileReleaseRenderscript</span><br><span class="line">:app:generateReleaseResValues</span><br><span class="line">:app:generateReleaseResources</span><br><span class="line">:app:mergeReleaseResources</span><br><span class="line">:app:processReleaseManifest</span><br><span class="line">:app:processReleaseResources</span><br><span class="line">:app:generateRJava</span><br><span class="line">Running FAT-AAR Task :generateRJava</span><br><span class="line">:app:generateReleaseBuildConfig</span><br><span class="line">:app:generateReleaseSources</span><br><span class="line">:app:incrementalReleaseJavaCompilationSafeguard</span><br><span class="line">:app:compileReleaseJavaWithJavac</span><br><span class="line">:app:compileReleaseJavaWithJavac - is not incremental (e.g. outputs have changed, no previous execution, etc.).</span><br><span class="line">:app:collectRClass</span><br><span class="line">:app:embedRClass</span><br><span class="line">:app:embedJavaJars</span><br><span class="line">Running FAT-AAR Task :embedJavaJars</span><br><span class="line">:app:mergeReleaseShaders</span><br><span class="line">:app:compileReleaseShaders</span><br><span class="line">:app:embedAssets</span><br><span class="line">Running FAT-AAR Task :embedAssets</span><br><span class="line">:app:generateReleaseAssets</span><br><span class="line">:app:mergeReleaseJniLibFolders</span><br><span class="line">:app:transformNative_libsWithMergeJniLibsForRelease</span><br><span class="line">:app:transformNative_libsWithSyncJniLibsForRelease</span><br><span class="line">:app:embedJniLibs</span><br><span class="line">Running FAT-AAR Task :embedJniLibs</span><br><span class="line">======= Copying JNI from /Users/yutinglin/Documents/src/code/android/demo/app/build/intermediates/exploded-aar/demo/base/unspecified/jni</span><br><span class="line">:app:embedManifests</span><br><span class="line">Running FAT-AAR Task :embedManifests</span><br><span class="line">========== INFO : Loading library manifest /Users/yutinglin/Documents/src/code/android/demo/app/build/intermediates/exploded-aar/demo/base/unspecified/AndroidManifest.xml</span><br><span class="line">========== INFO : Merging main manifest /Users/yutinglin/Documents/src/code/android/demo/app/build/intermediates/bundles/release/AndroidManifest.orig.xml</span><br><span class="line"></span><br><span class="line">========== INFO : Merging library manifest /Users/yutinglin/Documents/src/code/android/demo/app/build/intermediates/exploded-aar/demo/base/unspecified/AndroidManifest.xml</span><br><span class="line">========== INFO : Merging manifest with lower AndroidManifest.xml:2:1-17:12</span><br><span class="line">========== INFO : Merging uses-sdk with lower AndroidManifest.xml:7:5-9:41</span><br><span class="line">========== INFO : Merging application with lower AndroidManifest.xml:11:5-15:19</span><br><span class="line">========== INFO : Merging result:SUCCESS</span><br><span class="line">========== INFO : Merged manifest saved to /Users/yutinglin/Documents/src/code/android/demo/app/build/intermediates/bundles/release/AndroidManifest.xml</span><br><span class="line">========== INFO : Merged aapt safe manifest saved to /Users/yutinglin/Documents/src/code/android/demo/app/build/intermediates/manifests/aapt/release/AndroidManifest.xml</span><br><span class="line">:app:extractReleaseAnnotations</span><br><span class="line">:app:mergeReleaseAssets</span><br><span class="line">:app:mergeReleaseProguardFiles UP-TO-DATE</span><br><span class="line">:app:packageReleaseRenderscript UP-TO-DATE</span><br><span class="line">:app:embedProguard</span><br><span class="line">Running FAT-AAR Task :embedProguard</span><br><span class="line">:app:embedLibraryResources</span><br><span class="line">Running FAT-AAR Task :embedLibraryResources</span><br><span class="line">:app:packageReleaseResources</span><br><span class="line">:app:processReleaseJavaRes UP-TO-DATE</span><br><span class="line">:app:transformResourcesWithMergeJavaResForRelease</span><br><span class="line">:app:transformClassesAndResourcesWithSyncLibJarsForRelease</span><br><span class="line">:app:bundleRelease</span><br><span class="line">:app:compileReleaseSources</span><br><span class="line">:app:assembleRelease</span><br><span class="line">:base:compileReleaseSources</span><br><span class="line">:base:assembleRelease</span><br><span class="line"></span><br><span class="line">BUILD SUCCESSFUL</span><br><span class="line"></span><br><span class="line">Total time: 9.887 secs</span><br></pre></td></tr></table></figure></p>
+<p>从日志可看出 task 执行顺序<br><img src="https://raw.githubusercontent.com/yuting-lin/hexo.github.io/master/source/_posts/Android%E6%9E%84%E5%BB%BA%E7%AF%87/android-fat-aar.png" alt="android-fat-aar"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0620/3094.html" target="_blank" rel="noopener">Android Studio 分模块自动化构建实战</a><br><a href="https://github.com/adwiv/android-fat-aar" target="_blank" rel="noopener">android-fat-aar</a><br><a href="https://developer.android.com/studio/projects/android-library.html#aar-contents" target="_blank" rel="noopener">AAR 文件详解</a><br><a href="http://www.jianshu.com/p/f88ff677ac95" target="_blank" rel="noopener">Gradle学习笔记(四)– fat-aar.gradle解析</a><br><a href="http://www.jianshu.com/p/9b022951571c" target="_blank" rel="noopener">[Android]多module合成单一module技巧</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/16/Android构建篇3/" rel="next" title="Android 构建篇(3)：Gradle 依赖管理">
+                <i class="fa fa-chevron-left"></i> Android 构建篇(3)：Gradle 依赖管理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Lyt</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方案-一-使用-jar-命令"><span class="nav-text">解决方案(一): 使用 jar 命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方案-二-android-fat-aar"><span class="nav-text">解决方案(二): android-fat-aar</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-配置"><span class="nav-text">1. 配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-android-fat-aar-不支持的部分"><span class="nav-text">2. android-fat-aar 不支持的部分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#android-fat-aar-实现原理"><span class="nav-text">android-fat-aar 实现原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-aar-文件是什么-需要合并哪些内容？"><span class="nav-text">1. aar 文件是什么? 需要合并哪些内容？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-原理"><span class="nav-text">2. 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-如何确认需要合并的-module"><span class="nav-text">2.1 如何确认需要合并的 module?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-如何找到需要合并的-module-的内容文件路径"><span class="nav-text">2.2 如何找到需要合并的 module 的内容文件路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-什么时候执行合并？"><span class="nav-text">2.3 什么时候执行合并？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lyt</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
